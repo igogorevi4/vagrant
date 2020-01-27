@@ -1,0 +1,38 @@
+
+#     # Jenkins master
+#   config.vm.box = "hashicorp/bionic64"
+#   config.vm.define "jenkins-server"
+#   config.vm.hostname = "jenkins-server"
+#   config.vm.network "forwarded_port", guest: 8080, host: 8080, host_ip: "127.0.0.1"
+#   config.vm.provision :shell, path: "run.server.sh"
+#     # Jenkins slave
+
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# SSH key pair for jenkins master-slave interaction
+ssh_priv_key = ENV['SSH_PRIVATE_KEY']
+ssh_pub_key = ENV['SSH_PUBLIC_KEY']
+Vagrant.configure("2") do |config|
+  # Jenkins master
+  config.vm.define :jenkins do |master_config|
+    master_config.vm.box = "hashicorp/bionic64"
+    master_config.vm.hostname = "jenkins-master"
+    master_config.vm.network :private_network, ip: "192.168.50.4"
+    master_config.vm.network "forwarded_port", guest: 8080, host: 8080, host_ip: "127.0.0.1"
+    master_config.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+    end
+    master_config.vm.provision :shell, path: "run.server.sh", :args => [ssh_priv_key]
+  end
+  # Jenkins slave
+  config.vm.define :jenkinsslave do |slave_config|
+    slave_config.vm.box = "hashicorp/bionic64"
+    slave_config.vm.hostname = "jenkins-slave"
+    slave_config.vm.network :private_network, ip: "192.168.50.5"
+    slave_config.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+    end
+    slave_config.vm.provision :shell, path: "run.slave.sh", :args => [ssh_pub_key]
+  end
+end
