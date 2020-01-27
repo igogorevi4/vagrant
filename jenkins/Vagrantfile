@@ -1,21 +1,22 @@
-
-#     # Jenkins master
-#   config.vm.box = "hashicorp/bionic64"
-#   config.vm.define "jenkins-server"
-#   config.vm.hostname = "jenkins-server"
-#   config.vm.network "forwarded_port", guest: 8080, host: 8080, host_ip: "127.0.0.1"
-#   config.vm.provision :shell, path: "run.server.sh"
-#     # Jenkins slave
-
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# SSH key pair for jenkins master-slave interaction
-ssh_priv_key = ENV['SSH_PRIVATE_KEY']
-ssh_pub_key = ENV['SSH_PUBLIC_KEY']
+# shell script for jenkins-master
+$scriptmaster = <<-SCRIPT
+sudo mv /tmp/id_rsa /var/lib/jenkins/.ssh/id_rsa
+sudo chown jenkins:jenkins /var/lib/jenkins/.ssh/id_rsa
+sudo chmod 600 /var/lib/jenkins/.ssh/id_rsa
+SCRIPT
+
+$scriptslave = <<-SCRIPT
+sudo mv /tmp/tmp_id_rsa.pub /var/lib/jenkins/.ssh/authorized_keys
+sudo chown jenkins:jenkins /var/lib/jenkins/.ssh/authorized_keys
+sudo chmod 600 /var/lib/jenkins/.ssh/authorized_keys
+SCRIPT
+
 Vagrant.configure("2") do |config|
   # Jenkins master
-  config.vm.define :jenkins do |master_config|
+  config.vm.define :jenkinsmaster do |master_config|
     master_config.vm.box = "hashicorp/bionic64"
     master_config.vm.hostname = "jenkins-master"
     master_config.vm.network :private_network, ip: "192.168.50.4"
@@ -23,7 +24,9 @@ Vagrant.configure("2") do |config|
     master_config.vm.provider "virtualbox" do |vb|
       vb.memory = "1024"
     end
-    master_config.vm.provision :shell, path: "run.server.sh", :args => [ssh_priv_key]
+    master_config.vm.provision :shell, path: "run.server.sh"
+    master_config.vm.provision "file", source: "tmp_id_rsa", destination: "/tmp/id_rsa"
+    master_config.vm.provision "shell", inline: $scriptmaster
   end
   # Jenkins slave
   config.vm.define :jenkinsslave do |slave_config|
@@ -33,6 +36,8 @@ Vagrant.configure("2") do |config|
     slave_config.vm.provider "virtualbox" do |vb|
       vb.memory = "1024"
     end
-    slave_config.vm.provision :shell, path: "run.slave.sh", :args => [ssh_pub_key]
+    slave_config.vm.provision :shell, path: "run.slave.sh"
+    slave_config.vm.provision "file", source: "tmp_id_rsa.pub", destination: "/tmp/tmp_id_rsa.pub"
+    slave_config.vm.provision "shell", inline: $scriptslave
   end
 end
