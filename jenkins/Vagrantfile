@@ -11,8 +11,8 @@ sudo chown -R jenkins:jenkins /var/lib/jenkins
 echo "----- Starting up Jenkins server"
 sudo systemctl restart jenkins.service
 sudo systemctl enable jenkins.service
-# JENKINSPWD=$(sudo cat /var/lib/jenkins/secrets/initialAdminPassword)
-# echo "----- JenkinsPassword: $JENKINSPWD"
+JENKINSPWD=$(sudo cat /var/lib/jenkins/secrets/initialAdminPassword)
+echo "----- JenkinsPassword: $JENKINSPWD"
 SCRIPT
 
 # shell script for jenkins-slave
