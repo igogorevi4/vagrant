@@ -1,8 +1,8 @@
 <?xml version='1.1' encoding='UTF-8'?>
 <flow-definition plugin="workflow-job@2.36">
   <actions>
-    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.5.0"/>
-    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.5.0">
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@1.5.1"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@1.5.1">
       <jobProperties/>
       <triggers/>
       <parameters/>
@@ -16,23 +16,22 @@
     <script>pipeline {
     agent {
         node {
-            label &quot;jenkins-slave&quot;
-            //defaultContainer &apos;jnlp&apos;
+            label &quot;jenkins-slave&quot;;
         }
     }
 
     stages {
-        stage(&apos;Copy artifacts to SaaS bucket&apos;) {
+        stage(&quot;Build ApprovalTests&quot;) {
             steps {
                 script {
-                    sh &apos;hostname&apos;
+                    sh &quot;mkdir ~/tmp/&quot;
+                    sh &quot;git clone https://github.com/mzagar/approvals-example.git ~/tmp/approvals-example&quot;
+                    sh &quot;mvn install:install-file -Dfile=mvn install:install-file -Dfile=/var/lib/jenkins/tmp/approvals-example/lib/ApprovalTests-0.13.jar -DgroupId=com.github.approvals -DartifactId=ApprovalTests -Dversion=0.13 -Dpackaging=jar -DgroupId=com.github.approvals -DartifactId=ApprovalTests -Dversion=0.13 -Dpackaging=jar&quot;
                 }
             }
         }
     }
-}
-
-</script>
+}</script>
     <sandbox>true</sandbox>
   </definition>
   <triggers/>
