@@ -1,0 +1,14 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<slave>
+  <name>jenkins-slave</name>
+  <description>jenkins-slave</description>
+  <remoteFS>/var/lib/jenkins</remoteFS>
+  <numExecutors>1</numExecutors>
+  <mode>EXCLUSIVE</mode>
+  <retentionStrategy class="hudson.slaves.RetentionStrategy$Always"/>
+  <launcher class="hudson.slaves.CommandLauncher" plugin="command-launcher@1.4">
+    <agentCommand>ssh jenkins-slave -o StrictHostKeyChecking=no &quot;java -jar ~/bin/agent.jar&quot;</agentCommand>
+  </launcher>
+  <label>jenkins-slave</label>
+  <nodeProperties/>
+</slave>

@@ -4,14 +4,24 @@
 # shell script for jenkins-master
 $scriptmaster = <<-SCRIPT
 sudo mv /tmp/id_rsa /var/lib/jenkins/.ssh/id_rsa
-sudo chown jenkins:jenkins /var/lib/jenkins/.ssh/id_rsa
+sudo mv /tmp/job-config.xml /var/lib/jenkins/jobs/run-approvals/config.xml
+sudo mv /tmp/node-config.xml /var/lib/jenkins/nodes/jenkins-slave/config.xml
 sudo chmod 600 /var/lib/jenkins/.ssh/id_rsa
+sudo chown -R jenkins:jenkins /var/lib/jenkins
+echo "----- Starting up Jenkins server"
+sudo systemctl restart jenkins.service
+sudo systemctl enable jenkins.service
+# JENKINSPWD=$(sudo cat /var/lib/jenkins/secrets/initialAdminPassword)
+# echo "----- JenkinsPassword: $JENKINSPWD"
 SCRIPT
 
+# shell script for jenkins-slave
 $scriptslave = <<-SCRIPT
 sudo mv /tmp/tmp_id_rsa.pub /var/lib/jenkins/.ssh/authorized_keys
 sudo chown jenkins:jenkins /var/lib/jenkins/.ssh/authorized_keys
 sudo chmod 600 /var/lib/jenkins/.ssh/authorized_keys
+sudo wget http://jenkins-master:8080/jnlpJars/agent.jar -O /var/lib/jenkins/bin/agent.jar
+sudo chown -R jenkins:jenkins /var/lib/jenkins
 SCRIPT
 
 Vagrant.configure("2") do |config|
@@ -26,7 +36,14 @@ Vagrant.configure("2") do |config|
     end
     master_config.vm.provision :shell, path: "run.server.sh"
     master_config.vm.provision "file", source: "tmp_id_rsa", destination: "/tmp/id_rsa"
+    # primary jenkins configuring
+    master_config.vm.provision "shell", inline: "sudo mkdir -p /var/lib/jenkins/nodes/jenkins-slave/"
+    master_config.vm.provision "file", source: "jenkins/config/nodes/jenkins-slave/config.xml", destination: "/tmp/node-config.xml"
+    # creating first job
+    master_config.vm.provision "shell", inline: "sudo mkdir -p /var/lib/jenkins/jobs/run-approvals/"
+    master_config.vm.provision "file", source: "jenkins/jobs/run-approvals/config.xml", destination: "/tmp/job-config.xml"
     master_config.vm.provision "shell", inline: $scriptmaster
+    master_config.vm.provision "shell", inline: "echo '----- JenkinsPassword: \$(sudo cat /var/lib/jenkins/secrets/initialAdminPassword)'"
   end
   # Jenkins slave
   config.vm.define :jenkinsslave do |slave_config|

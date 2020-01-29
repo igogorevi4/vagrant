@@ -23,14 +23,3 @@ cat >> /etc/hosts <<EOF
 192.168.50.4      jenkins-master
 192.168.50.5      jenkins-slave
 EOF
-
-echo "----- Starting up Jenkins server"
-systemctl start jenkins.service
-systemctl enable jenkins.service
-
-echo "----- Getting initial password"
-JENKINSPWD=$(cat /var/lib/jenkins/secrets/initialAdminPassword)
-echo "----- After jenkins's started go to your web-browser and put this password to finalize Jenkins installation: $JENKINSPWD"
-sleep 1m
-echo "----- "
-echo "----- Jenkins master started"
